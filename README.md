@@ -1,68 +1,124 @@
 # Titanic---Machine-Learning-from-Disaster
 
-# Titanic-Machine-Learning-from-Disaster
+***
 
-# Software And Tools Requirements
+# 🚢 Titanic Survival Predictor
 
-1.[Github Account](https://github.com)
+Interactive Streamlit app that predicts whether a Titanic passenger would **survive** using an SVC model trained on the classic **Kaggle Titanic – Machine Learning from Disaster** dataset.
 
-2.[VSCodeIDE](https://code.visualstudio.com/)
+## 1. Project Overview
 
-3.[HerokuAccount](https://heroku.com)
+This app is a Python/Streamlit version of the Jupyter notebook `Titanic_Machine_Learning_from_Disaster.ipynb`.
+It reproduces the same pipeline:
 
-4.[GitCLI](https://git-scm.com/book/en/v2/Getting-Started-The-Command-Line)
+- Load Titanic CSV
+- Drop unused columns (`Cabin`, `Age`, `Embarked`, `Ticket`)
+- Encode `Sex` (create `Sex_male` dummy)
+- Scale features with `StandardScaler`
+- Train-test split (80/20, `random_state=2`)
+- Train tuned **SVC** model (`C=1`, `kernel='rbf'`, `gamma='scale'`)
+- Achieves ~**82%** train accuracy and ~**77.1%** test accuracy. 
 
-5.[Streamlit](https://streamlit.io/)
+The Streamlit UI lets you adjust passenger details and see whether the model predicts **Survived** or **Did not survive**.
 
-Create a new Environment
+## 2. Folder Structure
 
+```text
+your-project/
+├── app.py
+├── Titanic - Machine Learning from Disaster.csv
+└── Titanic_Machine_Learning_from_Disaster.ipynb 
 ```
-conda create -p venv python==3.7 -y
-```
 
-# 🏥 Diabetes Prediction System
+- `app.py` – main Streamlit app (real runnable code).
+- CSV – Titanic dataset used both in notebook and app.
 
-A machine learning web application that predicts Titanic-Disaster parameters.
+## 3. Setup & Installation
 
-## 🚀 Live Demo
-**[Try it here!](https://diabetespredictions-ngyczqg6pwzjbjnxwpepub.streamlit.app/)**
+1. **Clone / download** this project into a folder.
+2. Place the Titanic CSV file in the same folder as `app.py` and name it:
 
-## 📊 About
-This project uses a Support Vector Machine model trained on the  Titanic-Machine-Learning-from-Disaster Database to predict the likelihood of Titanic - Disaster with parameters.
+   ```text
+   Titanic - Machine Learning from Disaster.csv
+   ```
 
-## 🎯 Features
-- Real-time predictions
-- User-friendly interface
-- Deployed on Streamlit Cloud
+3. Create and activate a virtual environment (optional but recommended):
 
-## 🛠️ Tech Stack
-- Python
-- Scikit-learn
-- Streamlit
-- Pandas, NumPy
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate    # Linux/macOS
+   .venv\Scripts\activate       # Windows
+   ```
 
-## 📈 Model Performance
-- Algorithm: Linear Regression
-- Accuracy: ~82%
-- Dataset: 442 rows, 10 columns
+4. Install dependencies:
 
-## 🏃‍♂️ Run Locally
+   ```bash
+   pip install -r requirements.txt
+   ```
+   or manually:
+
+   ```bash
+   pip install streamlit pandas numpy scikit-learn
+   ``` 
+
+## 4. Running the App (VSCode or Terminal)
+
+From the project folder:
+
 ```bash
-git clone [https://github.com/vamsi-krishna108/Titanic---Machine-Learning-from-Disaster.git]
-cd [Titanic-Machine-Learning-from-Disaster]
-pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## 📸 Screenshots
-![App Screenshot](screenshot.png)
+- This will open the app in your browser at `http://localhost:8501`.
+- If it does not open automatically, copy the URL from the terminal.
 
-## 👨‍💻 Author
-[Jonnagiri Vamsi Krishna] - [LinkedIn : https://www.linkedin.com/in/vamsi-krishna-4210a1325/] - [Email : vamshikrishna4444j@gmail.com]
+## 5. Using the App
 
+1. Go to **Titanic Survival Predictor** section.
+2. Adjust inputs:
+   - Pclass (1, 2, 3)
+   - Sex (male/female)
+   - SibSp (siblings/spouses on board)
+   - Parch (parents/children on board)
+   - Fare (ticket price).
 
-```
+3. Click **Predict**.
 
-🔗 Live Demo: https://diabetespredictions-ngyczqg6pwzjbjnxwpepub.streamlit.app/
+The app will show:
 
-#MachineLearning #DataScience #Python #AI #100DaysOfCode #BTech
+- Model **Train Accuracy** and **Test Accuracy**.
+- A message: **“Survived!”** or **“Did not survive.”**
+- A confidence score derived from the SVC decision function.
+
+## 6. Model Details
+
+- Algorithm: **Support Vector Classifier (SVC)**
+- Hyperparameters (from GridSearchCV in the notebook)
+  - `C = 1`
+  - `kernel = 'rbf'`
+  - `gamma = 'scale'`
+- Preprocessing:
+  - Drop: `Cabin`, `Age`, `Embarked`, `Ticket`
+  - Features: `PassengerId`, `Pclass`, `SibSp`, `Parch`, `Fare`, `Sex_male`
+  - Scaling: `StandardScaler` on all features.
+
+## 7. Troubleshooting
+
+- **CSV not found error**  
+  Make sure the file name is exactly:
+
+  ```text
+  Titanic - Machine Learning from Disaster.csv
+  ```
+
+- **Module not found**  
+  Reinstall dependencies:
+
+  ```bash
+  pip install streamlit pandas numpy scikit-learn
+  ```
+
+- **App not loading**  
+  Check terminal for errors, fix them, then rerun `streamlit run app.py`.
+
+***

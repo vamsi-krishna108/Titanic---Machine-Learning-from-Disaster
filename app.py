@@ -1,75 +1,75 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score
-import pickle
 
-# Load data (matches your notebook)
+# ---------- PAGE CONFIG ----------
+st.set_page_config(
+    page_title="Titanic Survival Predictor",
+    page_icon="🚢",
+    layout="centered",
+)
+
+# ---------- DATA & MODEL ----------
 @st.cache_data
 def load_data():
-    data = pd.read_csv('Titanic - Machine Learning from Disaster.csv')
-    data.drop(columns=['Cabin', 'Age', 'Embarked', 'Ticket'], inplace=True)
-    X = data.drop(columns=['Survived', 'Name'], axis=1)
-    y = data['Survived']
-    X = pd.get_dummies(X, columns=['Sex'], drop_first=True)
+    # CSV file must be in the same folder as app.py
+    data = pd.read_csv("Titanic - Machine Learning from Disaster.csv")
+    # Same preprocessing as notebook
+    data.drop(columns=["Cabin", "Age", "Embarked", "Ticket"], inplace=True)
+    X = data.drop(columns=["Survived", "Name"])
+    y = data["Survived"]
+    X = pd.get_dummies(X, columns=["Sex"], drop_first=True)
     return X, y
 
-# Train model (replicates your notebook's SVC with best params)
 @st.cache_resource
 def train_model():
     X, y = load_data()
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=2)
-    
-    model = SVC(C=1, gamma='scale', kernel='rbf', random_state=2)  # Best params from your notebook
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_scaled, y, test_size=0.2, random_state=2
+    )
+
+    # Tuned SVC from notebook (C=1, kernel='rbf', gamma='scale')
+    model = SVC(C=1, kernel="rbf", gamma="scale", random_state=2)
     model.fit(X_train, y_train)
-    
+
     train_acc = accuracy_score(y_train, model.predict(X_train))
     test_acc = accuracy_score(y_test, model.predict(X_test))
-    
-    return model, scaler, train_acc, test_acc
 
-# Streamlit UI
-st.title("🚢 Titanic Survival Predictor")
-st.markdown("Interactive app based on your Jupyter notebook's SVC model (~77% test accuracy).")
+    return model, scaler, train_acc, test_acc
 
 model, scaler, train_acc, test_acc = train_model()
 
-col1, col2 = st.columns(2)
-with col1:
-    st.metric("Train Accuracy", f"{train_acc:.1%}")
-with col2:
-    st.metric("Test Accuracy", f"{test_acc:.1%}")
-st.subheader("Predict Survival")
-pclass = st.selectbox("Pclass", [1, 2, 3])
-name = st.text_input("Name (ignored in model)")
-sex = st.selectbox("Sex", ["male", "female"])
-sibsp = st.slider("SibSp", 0, 8, 0)
-parch = st.slider("Parch", 0, 6, 0)
-fare = st.slider("Fare", 0.0, 512.0, 7.25)
+# ---------- HEADER ----------
+st.markdown(
+    """
+    <h1 style="text-align:center; margin-bottom:0;">🚢 Titanic Survival Predictor</h1>
+    <p style="text-align:center; color:gray; margin-top:4px;">
+        SVC model (~77% test accuracy) trained from your Titanic notebook.
+    </p>
+    """,
+    unsafe_allow_html=True,
+)
 
-if st.button("Predict"):
-    # Create input DataFrame matching training features order
-    input_df = pd.DataFrame({
-        'PassengerId': [1],  # Dummy, not used
-        'Pclass': [pclass],
-        'SibSp': [sibsp],
-        'Parch': [parch],
-        'Fare': [fare],
-        'Sex_male': [1 if sex == 'male' else 0]
-    })
-    
-    # Scale input (no proba needed)
-    input_scaled = scaler.transform(input_df)
-    prediction = model.predict(input_scaled)[0]
-    
-    survived = "Survived! 🎉" if prediction == 1 else "Did not survive. 💔"
-    st.success(survived)
-    
-    # Confidence via decision_function (distance to hyperplane)
-    confidence = model.decision_function(input_scaled)[0]
-    st.info(f"**Model confidence:** {abs(confidence):.2f} (higher = more certain)")
+# ---------- METRICS ----------
+st.markdown("---")
+col_a, col_b = st.columns(2)
+with col_a:
+    st.metric("Train Accuracy", f"{train_acc:.1%}")
+with col_b:
+    st.metric("Test Accuracy", f"{test_acc:.1%}")
+
+st.markdown("---")
+
+# ---------- SIDEBAR INPUTS ----------
+st.sidebar.header("Passenger Details")
+
+pclass = st.sidebar.selectbox("Passenger Class (Pclass)", [1, 2, 3], index=0)
+sex = st.sidebar.selectbox("Sex", ["male", "female"], index=0)
+sibsp = st.sidebar.slider("Siblings/Spouses Aboard (SibSp)", 0, 8, 0)
+parch = st.sidebar.slider("Parents/Children Aboard")
