@@ -44,7 +44,6 @@ with col1:
     st.metric("Train Accuracy", f"{train_acc:.1%}")
 with col2:
     st.metric("Test Accuracy", f"{test_acc:.1%}")
-
 st.subheader("Predict Survival")
 pclass = st.selectbox("Pclass", [1, 2, 3])
 name = st.text_input("Name (ignored in model)")
@@ -54,9 +53,9 @@ parch = st.slider("Parch", 0, 6, 0)
 fare = st.slider("Fare", 0.0, 512.0, 7.25)
 
 if st.button("Predict"):
-    # Create input matching your features
+    # Create input DataFrame matching training features order
     input_df = pd.DataFrame({
-        'PassengerId': [1],  # Dummy
+        'PassengerId': [1],  # Dummy, not used
         'Pclass': [pclass],
         'SibSp': [sibsp],
         'Parch': [parch],
@@ -64,12 +63,13 @@ if st.button("Predict"):
         'Sex_male': [1 if sex == 'male' else 0]
     })
     
+    # Scale input (no proba needed)
     input_scaled = scaler.transform(input_df)
     prediction = model.predict(input_scaled)[0]
-    prob = model.predict_proba(input_scaled)[0]
     
-    st.success("Survived!" if prediction == 1 else "Did not survive.")
-    st.write(f"**Probability:** Survived: {prob[1]:.1%}, Not: {prob[0]:.1%}")
-
-st.subheader("Model Insights")
-st.write("Reproduces your notebook: Data prep, scaling, train/test split (80/20), tuned SVC (C=1, RBF kernel, gamma=scale).")[file:1]
+    survived = "Survived! 🎉" if prediction == 1 else "Did not survive. 💔"
+    st.success(survived)
+    
+    # Confidence via decision_function (distance to hyperplane)
+    confidence = model.decision_function(input_scaled)[0]
+    st.info(f"**Model confidence:** {abs(confidence):.2f} (higher = more certain)")
