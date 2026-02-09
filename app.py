@@ -72,4 +72,65 @@ st.sidebar.header("Passenger Details")
 pclass = st.sidebar.selectbox("Passenger Class (Pclass)", [1, 2, 3], index=0)
 sex = st.sidebar.selectbox("Sex", ["male", "female"], index=0)
 sibsp = st.sidebar.slider("Siblings/Spouses Aboard (SibSp)", 0, 8, 0)
-parch = st.sidebar.slider("Parents/Children Aboard")
+parch = st.sidebar.slider("Parents/Children Aboard (Parch)", 0, 6, 0)
+fare = st.sidebar.slider("Ticket Fare", 0.0, 512.0, 7.25, step=0.25)
+
+st.sidebar.info(
+    "Tip: 1st class, female, higher fare, and some family on board "
+    "usually increase survival odds according to the data."
+)
+
+# ---------- MAIN PREDICTION AREA ----------
+st.subheader("Prediction")
+
+st.write(
+    "Set the passenger details in the sidebar and click the button below to see the prediction."
+)
+
+center_col = st.columns([1, 2, 1])[1]
+with center_col:
+    predict_btn = st.button("Predict Survival", use_container_width=True)
+
+if predict_btn:
+    # Build input row matching training features
+    input_df = pd.DataFrame(
+        {
+            "PassengerId": [1],  # dummy
+            "Pclass": [pclass],
+            "SibSp": [sibsp],
+            "Parch": [parch],
+            "Fare": [fare],
+            "Sex_male": [1 if sex == "male" else 0],
+        }
+    )
+
+    input_scaled = scaler.transform(input_df)
+    pred = model.predict(input_scaled)[0]
+    confidence = model.decision_function(input_scaled)[0]
+
+    st.markdown("### Result")
+
+    if pred == 1:
+        st.success("✅ The model predicts: **Survived**")
+    else:
+        st.error("❌ The model predicts: **Did not survive**")
+
+    st.caption(
+        f"Model confidence (distance from decision boundary): `{abs(confidence):.2f}` "
+        "(higher means more certain)."
+    )
+
+# ---------- EXPLANATION ----------
+with st.expander("How this model works"):
+    st.markdown(
+        """
+        - Trained on Kaggle's **Titanic - Machine Learning from Disaster** dataset.[file:1]  
+        - Preprocessing:
+          - Drop: `Cabin`, `Age`, `Embarked`, `Ticket`.[file:1]
+          - Features: `PassengerId`, `Pclass`, `SibSp`, `Parch`, `Fare`, `Sex_male`.[file:1]
+          - Standardization with `StandardScaler`.[file:1]
+        - Model: Support Vector Classifier (SVC) with tuned hyperparameters:
+          - `C = 1`, `kernel = 'rbf'`, `gamma = 'scale'`.[file:1]
+        - Split: 80% train / 20% test with `random_state=2`.[file:1]
+        """
+    )
